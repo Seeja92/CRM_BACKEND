@@ -107,6 +107,11 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 NEXT_PUBLIC_BASE_URL=os.getenv('NEXT_PUBLIC_BASE_URL')
 NEXT_PUBLIC_API_URL=os.getenv('NEXT_PUBLIC_API_URL')
 
+print("EMAIL_HOST:", EMAIL_HOST)
+print("EMAIL_PORT:", EMAIL_PORT)
+print("EMAIL_HOST_USER:", EMAIL_HOST_USER)
+print("EMAIL_HOST_PASSWORD:", EMAIL_HOST_PASSWORD)
+
 MIDDLEWARE = [
      'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
