@@ -29,13 +29,13 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
         f"CRM Team"
     )
 
-    send_mail(
-        subject="Password Reset Request - CRM",
-        message=message,
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[settings.EMAIL_HOST_USER],
-        fail_silently=False,
-    )
+    # send_mail(
+    #     subject="Password Reset Request - CRM",
+    #     message=message,
+    #     from_email=settings.EMAIL_HOST_USER,
+    #     recipient_list=[settings.EMAIL_HOST_USER],
+    #     fail_silently=False,
+    # )
 
 
 @receiver(post_password_reset)
