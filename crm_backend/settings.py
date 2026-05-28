@@ -78,6 +78,11 @@ DJANGO_REST_PASSWORDRESET_TOKEN_CONFIG = {
     }
 }
 
+CORS_ALLOWED_ORIGINS = [
+    "https://crm-frontend-jiry.vercel.app",
+    "https://crm-frontend-jiry-git-main-seejavms-projects.vercel.app",
+    "https://crm-frontend-jiry-4268v5pt5-seejavms-projects.vercel.app",
+]
 CORS_ALLOW_ALL_ORIGINS = True 
 
 CORS_ALLOW_CREDENTIALS = True
