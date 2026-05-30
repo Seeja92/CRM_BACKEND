@@ -115,7 +115,7 @@ def ticket_save_handler(sender, instance, created, **kwargs):
     if created:
         broadcast_notification(
             title="New Support Ticket 🟢",
-            message=f"Ticket #{instance.id} '{instance.title}' has been opened.",
+            message=f"Ticket #{instance.id} '{instance.ticket_name}' has been opened.",
             notification_type="ticket",
             related_id=instance.id
         )
