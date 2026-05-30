@@ -99,7 +99,8 @@ class TicketDetailView(APIView):
             return Response({'error': 'Ticket not found'}, status=status.HTTP_404_NOT_FOUND)
         ticket.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
+    def patch(self, request, pk):
+        return self.put(request, pk)
 
 from .models import Ticket
 

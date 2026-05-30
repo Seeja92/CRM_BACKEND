@@ -65,7 +65,8 @@ class DealDetailView(APIView):
             return Response({'error': 'Deal not found'}, status=status.HTTP_404_NOT_FOUND)
         deal.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+    def patch(self, request, pk):
+        return self.put(request, pk)
 
 class DealActivityListCreateView(APIView):
     permission_classes = [IsAuthenticated]
