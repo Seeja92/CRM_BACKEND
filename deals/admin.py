@@ -3,6 +3,18 @@ from .models import Deal
 
 @admin.register(Deal)
 class DealAdmin(admin.ModelAdmin):
-    list_display = ['id', 'deal_name', 'deal_stage', 'deal_owner', 'amount', 'priority', 'close_date']
+    # list_display = ['id', 'deal_name', 'deal_stage', 'deal_owner', 'amount', 'priority', 'close_date']
+    list_display = (
+    'deal_name',
+    'deal_stage',
+    'amount',
+)
     search_fields = ['deal_name', 'deal_owner']
     list_filter = ['deal_stage', 'priority']
+
+    def get_owners(self, obj):
+        return ", ".join(
+            [owner.get_full_name() for owner in obj.deal_owner.all()]
+        )
+
+    get_owners.short_description = "Owners"

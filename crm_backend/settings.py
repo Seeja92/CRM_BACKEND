@@ -8,11 +8,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
-
 """
-import os
-import dj_database_url
-
 
 from pathlib import Path
 from dotenv import load_dotenv
@@ -31,10 +27,8 @@ SECRET_KEY =os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-# DEBUG = False
 
-# ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -46,9 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'whitenoise.runserver_nostatic',
     'rest_framework',
-    'rest_framework.authtoken', 
+    # 'rest_framework.authtoken', 
+    'rest_framework_simplejwt',
     'corsheaders',
     'django_rest_passwordreset',
     'users',
@@ -59,13 +53,17 @@ INSTALLED_APPS = [
     'activities',
     'attachments',
     'search',
+    'django_filters',
     'notifications.apps.NotificationsConfig', 
 ]
 REST_FRAMEWORK = {
+     "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
     
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [
+    #     'rest_framework.authentication.TokenAuthentication',
+    # ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -78,11 +76,6 @@ DJANGO_REST_PASSWORDRESET_TOKEN_CONFIG = {
     }
 }
 
-CORS_ALLOWED_ORIGINS = [
-    "https://crm-frontend-jiry.vercel.app",
-    "https://crm-frontend-jiry-git-main-seejavms-projects.vercel.app",
-    "https://crm-frontend-jiry-4268v5pt5-seejavms-projects.vercel.app",
-]
 CORS_ALLOW_ALL_ORIGINS = True 
 
 CORS_ALLOW_CREDENTIALS = True
@@ -97,7 +90,7 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 465
+EMAIL_PORT = os.getenv('EMAIL_PORT')
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True 
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')     # ← your gmail
@@ -107,15 +100,9 @@ FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 NEXT_PUBLIC_BASE_URL=os.getenv('NEXT_PUBLIC_BASE_URL')
 NEXT_PUBLIC_API_URL=os.getenv('NEXT_PUBLIC_API_URL')
 
-print("EMAIL_HOST:", EMAIL_HOST)
-print("EMAIL_PORT:", EMAIL_PORT)
-print("EMAIL_HOST_USER:", EMAIL_HOST_USER)
-print("EMAIL_HOST_PASSWORD:", EMAIL_HOST_PASSWORD)
-
 MIDDLEWARE = [
      'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -149,17 +136,15 @@ WSGI_APPLICATION = 'crm_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    
-    'default': dj_database_url.parse(os.environ.get("DATABASE_URL"))
-
-        # 'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME':  os.getenv('DATABASE_NAME'),     # your database name
-        # 'USER': os.getenv('DATABASE_USER'),      # your PostgreSQL username
-        # 'PASSWORD': os.getenv('DATABASE_PASSWORD'),  # your PostgreSQL password
-        # 'HOST': os.getenv('DATABASE_HOST'),
-        # 'PORT': os.getenv('DATABASE_PORT'),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME':  os.getenv('DATABASE_NAME'),     # your database name
+        'USER': os.getenv('DATABASE_USER'),      # your PostgreSQL username
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),  # your PostgreSQL password
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': os.getenv('DATABASE_PORT'),
     }
-
+}
 
 
 # Password validation
@@ -197,7 +182,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

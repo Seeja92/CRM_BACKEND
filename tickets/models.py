@@ -29,6 +29,7 @@ class Ticket(models.Model):
     ]
 
     ticket_name    = models.CharField(max_length=255)
+    lead           = models.ForeignKey('leads.Lead',on_delete=models.SET_NULL, null=True, blank=True,related_name='tickets')
     company        = models.ForeignKey('companies.Company', on_delete=models.SET_NULL, null=True, blank=True, related_name='tickets')
     deal           = models.ForeignKey('deals.Deal', on_delete=models.SET_NULL, null=True, blank=True, related_name='tickets')
     status         = models.CharField(max_length=50, choices=STATUS_CHOICES, default='New')

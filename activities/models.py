@@ -62,7 +62,11 @@ class Task(models.Model):
     time        = models.TimeField()
     task_type   = models.CharField(max_length=50, choices=TYPE_CHOICES)
     priority    = models.CharField(max_length=20, choices=PRIORITY_CHOICES)
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_tasks')
+    assigned_to = models.ManyToManyField(
+    User,
+    related_name='assigned_tasks',
+    blank=True
+)
     note        = models.TextField(blank=True)
     is_complete = models.BooleanField(default=False)
     created_by  = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_tasks')

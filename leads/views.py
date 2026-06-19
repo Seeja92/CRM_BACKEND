@@ -4,6 +4,7 @@ import io
 from rest_framework import viewsets, filters
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Lead
@@ -12,20 +13,59 @@ from .serializers import LeadSerializer
 class LeadViewSet(viewsets.ModelViewSet):
     queryset = Lead.objects.all().order_by('-created_date')
     serializer_class = LeadSerializer
-    # permission_classes = [IsAuthenticated]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
+    # permission_classes = [AllowAny]
 
     filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name', 'last_name', 'email', 'phone', 'company_name']
+    search_fields = ['first_name', 'last_name', 'email', 'phone', 'company_name','status']
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        role = user.profile.role
+
+        lead = self.get_object()
+
+        if role == "Admin":
+            serializer.save()
+            return
+
+        if lead.contact_owner != user:
+             raise PermissionDenied(
+            "You can only edit your assigned leads."
+        )
+
+        serializer.save()
+
+    def destroy(self, request, *args, **kwargs):
+        user = request.user
+        role = user.profile.role
+
+        if role != "Admin":
+            raise PermissionDenied(
+            "Only Admin can delete leads."
+        )
+
+        return super().destroy(request, *args, **kwargs)
+
+
 
     def get_queryset(self):
-        queryset = Lead.objects.all().order_by('-created_date')
-        status = self.request.query_params.get('status')
+            user = self.request.user
+            role = user.profile.role
 
-        if status:
-            queryset = queryset.filter(status=status)
+            if role == "Admin":
+                queryset = Lead.objects.all().order_by("-created_date")
+            else:
+                queryset = Lead.objects.filter(
+                contact_owner=user
+                ).order_by("-created_date")
 
-        return queryset
+            status = self.request.query_params.get("status")
+
+            if status:
+                 queryset = queryset.filter(status=status)
+
+            return queryset
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 @permission_classes([AllowAny])

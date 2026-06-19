@@ -1,8 +1,12 @@
 
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view,permission_classes
+# from rest_framework.response import Response
+from .models import UserProfile
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.authtoken.models import Token
+# from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from django_rest_passwordreset.signals import reset_password_token_created, post_password_reset
 
@@ -11,6 +15,19 @@ from django.contrib.auth import authenticate
 from django.conf import settings
 from .serializers import RegisterSerializer, LoginSerializer
 
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def admin_exists(request):
+    exists = UserProfile.objects.filter(role="Admin").exists()
+    return Response({"admin_exists": exists})
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+
+    return {
+        "refresh": str(refresh),
+        "access": str(refresh.access_token),
+    }
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -23,16 +40,20 @@ class RegisterView(APIView):
 
             user = serializer.save()
 
-            token, _ = Token.objects.get_or_create(user=user)
-
+            tokens = get_tokens_for_user(user)
             return Response({
-                'token': token.key,
-                'email': user.email,
-                'id': user.id,
+                "access": tokens["access"],
+                "refresh": tokens["refresh"],
 
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-            }, status=status.HTTP_201_CREATED)
+                "email": user.email,
+                "id": user.id,
+
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "role": user.profile.role,
+})
+
+            
 
         return Response(
             serializer.errors,
@@ -68,15 +89,20 @@ class LoginView(APIView):
 
             if user:
 
-                token, _ = Token.objects.get_or_create(user=user)
 
+                tokens = get_tokens_for_user(user)
                 return Response({
-                    'token': token.key,
+                    "access": tokens["access"],
+                    "refresh": tokens["refresh"],
+
                     'email': user.email,
                     'id': user.id,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
-                })
+                    'role': user.profile.role,
+})
+
+               
 
             return Response(
                 {'error': 'Invalid email or password.'},
@@ -91,13 +117,26 @@ class LoginView(APIView):
 
 class LogoutView(APIView):
 
+   
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
 
-        request.user.auth_token.delete()
+            token = RefreshToken(refresh_token)
+            token.blacklist()
 
-        return Response({
-            'message': 'Logged out successfully'
-        })
+            return Response(
+                {"message": "Logged out successfully"},
+                status=200
+            )
+
+        except Exception:
+            return Response(
+                {"error": "Invalid token"},
+                status=400
+            )
     
 
 # ── Get All Users ─────────────────────────────────────────────────────────────

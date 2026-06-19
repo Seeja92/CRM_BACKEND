@@ -1,10 +1,9 @@
-
-
 from rest_framework import serializers
 from .models import Ticket
 from deals.models import Deal
 from companies.models import Company
 from django.contrib.auth import get_user_model
+from leads.models import Lead
 
 User = get_user_model()
 
@@ -20,6 +19,12 @@ class TicketSerializer(serializers.ModelSerializer):
     owner_name = serializers.SerializerMethodField()
 
     associated_deal = serializers.SerializerMethodField()
+
+    
+    lead_city = serializers.SerializerMethodField()
+
+    def get_lead_city(self, obj):
+       return obj.lead.city if obj.lead and obj.lead.city else None
 
     # ── Write-only FK fields ──────────────────────────────────────────────────
     deal_id = serializers.PrimaryKeyRelatedField(
@@ -44,6 +49,14 @@ class TicketSerializer(serializers.ModelSerializer):
         required=False
     )
 
+    lead_id = serializers.PrimaryKeyRelatedField(
+        queryset=Lead.objects.all(),
+        source='lead',
+        write_only=True,
+        allow_null=True,
+        required=False
+)
+
     class Meta:
         model = Ticket
         fields = [
@@ -56,13 +69,35 @@ class TicketSerializer(serializers.ModelSerializer):
             'company_name',
             'owner_name',
             'associated_deal',
+            'lead_city',
             # ── write-only ──
+            'lead_id',
             'deal_id',
             'ticket_owner_id',
             'company_id',
             'created_at',
             'updated_at',
         ]
+    def create(self, validated_data):
+        lead = validated_data.get("lead", None)
+
+    # 🟡 If lead not selected → try auto match/create
+        if not lead:
+            email = self.context["request"].data.get("email")
+            city = self.context["request"].data.get("city")
+
+        if email:
+            lead = Lead.objects.filter(email=email).first()
+
+        if not lead and email:
+            lead = Lead.objects.create(
+                email=email,
+                city=city
+            )
+
+        validated_data["lead"] = lead
+
+        return Ticket.objects.create(**validated_data)
 
     def get_owner_name(self, obj):
         if not obj.ticket_owner:
